@@ -77,7 +77,6 @@ public class DatabaseHelper {
         statement.execute(userTable);
         createQATables();
         createStaffTables();
-        createQATables();
         String invitationCodesTable = "CREATE TABLE IF NOT EXISTS InvitationCodes ("
                 + "code VARCHAR(10) PRIMARY KEY, "
                 + "isUsed BOOLEAN DEFAULT FALSE, "
