@@ -93,6 +93,17 @@ public class WelcomeLoginPage {
             });
             grid.add(reviewerButton, 0, 1); 
         }
+        
+     // Add after the reviewer button section
+        if ("staff".equals(user.getRole().toLowerCase())) {
+            Button staffButton = new Button("Continue to Staff Dashboard");
+            staffButton.setStyle("-fx-font-size: 14px; -fx-padding: 5 20; -fx-background-color: #9b59b6; -fx-text-fill: white;");
+            staffButton.setOnAction(a -> {
+                new StaffHomePage(databaseHelper, user).show(primaryStage);
+            });
+            grid.add(staffButton, 0, 1); 
+        }
+        
         if ("admin".equals(user.getRole().toLowerCase())) {
             Button adminButton = new Button("Continue to Admin Page");
             adminButton.setStyle("-fx-font-size: 14px; -fx-padding: 5 20; -fx-background-color: #ff9900; -fx-text-fill: black;");
