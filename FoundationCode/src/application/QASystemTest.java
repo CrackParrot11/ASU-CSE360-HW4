@@ -746,5 +746,699 @@ public class QASystemTest {
             assertTrue(retrieved.isResolved(), "Question should be marked as resolved");
             assertEquals(-1, retrieved.getResolvedAnswerId(), "Should not have specific resolved answer");
         }
+        
+        /**
+
+         * Test suite for Staff role functionality
+
+         */
+
+
+        /**
+
+         * <p>Test: Staff can view all questions</p>
+
+         * <p>
+
+         * Verifies that staff members can access and review all questions in the system,
+
+         * regardless of who created them or their resolution status.
+
+         * </p>
+
+         * 
+
+         * @throws SQLException If database error occurs
+
+         */
+
+        @Test
+
+        @DisplayName("Test 31: Staff can view all questions")
+
+        void testStaffCanViewAllQuestions() throws SQLException {
+
+            // Create test questions from different users
+
+            Question q1 = new Question("Test Question 1", "Content for question 1", testUser1.getUserName());
+
+            Question q2 = new Question("Test Question 2", "Content for question 2", testUser2.getUserName());
+
+            
+
+            int id1 = db.createQuestion(q1);
+
+            int id2 = db.createQuestion(q2);
+
+            
+
+            // Staff should be able to retrieve all questions
+
+            List<Question> allQuestions = db.getAllQuestions(null);
+
+            
+
+            assertTrue(allQuestions.size() >= 2, "Staff should see all questions");
+
+            assertTrue(allQuestions.stream().anyMatch(q -> q.getId() == id1), "Should include question 1");
+
+            assertTrue(allQuestions.stream().anyMatch(q -> q.getId() == id2), "Should include question 2");
+
+        }
+
+
+        /**
+
+         * <p>Test: Staff can view all answers</p>
+
+         * <p>
+
+         * Verifies that staff members can access and review all answers across all questions,
+
+         * enabling them to monitor the quality and appropriateness of responses.
+
+         * </p>
+
+         * 
+
+         * @throws SQLException If database error occurs
+
+         */
+
+        @Test
+
+        @DisplayName("Test 32: Staff can view all answers")
+
+        void testStaffCanViewAllAnswers() throws SQLException {
+
+            Question q = new Question("Test Question", "Test content", testUser1.getUserName());
+
+            int qId = db.createQuestion(q);
+
+            
+
+            Answer a1 = new Answer(qId, "First answer content", testUser1.getUserName());
+
+            Answer a2 = new Answer(qId, "Second answer content", testUser2.getUserName());
+
+            
+
+            db.createAnswer(a1);
+
+            db.createAnswer(a2);
+
+            
+
+            List<Answer> answers = db.getAnswersForQuestion(qId);
+
+            
+
+            assertEquals(2, answers.size(), "Staff should see all answers");
+
+        }
+
+
+        /**
+
+         * <p>Test: Staff can view private feedback</p>
+
+         * <p>
+
+         * Verifies that staff members have access to private feedback messages,
+
+         * allowing them to monitor interactions and identify potential issues.
+
+         * </p>
+
+         * 
+
+         * @throws SQLException If database error occurs
+
+         */
+
+        @Test
+
+        @DisplayName("Test 33: Staff can view private feedback")
+
+        void testStaffCanViewPrivateFeedback() throws SQLException {
+
+            Question q = new Question("Test Question", "Test content", testUser1.getUserName());
+
+            int qId = db.createQuestion(q);
+
+            
+
+            // Add private message
+
+            db.addPrivateMessage(qId, testUser2.getUserName(), testUser1.getUserName(), "QUESTION", "Private feedback content");
+
+            
+
+            List<DatabaseHelper.PrivateMessage> messages = db.getPrivateMessagesForQuestion(qId);
+
+            
+
+            assertFalse(messages.isEmpty(), "Staff should see private messages");
+
+            assertEquals(1, messages.size(), "Should have one private message");
+
+        }
+
+
+        /**
+
+         * <p>Test: Staff can access unresolved questions</p>
+
+         * <p>
+
+         * Verifies that staff can specifically view unresolved questions to identify
+
+         * areas where students may need additional support.
+
+         * </p>
+
+         * 
+
+         * @throws SQLException If database error occurs
+
+         */
+
+        @Test
+
+        @DisplayName("Test 34: Staff can identify unresolved questions")
+
+        void testStaffCanIdentifyUnresolvedQuestions() throws SQLException {
+
+            Question q1 = new Question("Unresolved Question", "Need help with this", testUser1.getUserName());
+
+            Question q2 = new Question("Resolved Question", "This was resolved", testUser1.getUserName());
+
+            
+
+            int id1 = db.createQuestion(q1);
+
+            int id2 = db.createQuestion(q2);
+
+            
+
+            // Resolve second question
+
+            Answer a = new Answer(id2, "Solution answer", testUser2.getUserName());
+
+            int aId = db.createAnswer(a);
+
+            db.markQuestionResolved(id2, aId, testUser1.getUserName());
+
+            
+
+            List<Question> unresolved = db.getUnresolvedQuestions();
+
+            
+
+            assertTrue(unresolved.stream().anyMatch(q -> q.getId() == id1), "Should include unresolved question");
+
+            assertFalse(unresolved.stream().anyMatch(q -> q.getId() == id2), "Should not include resolved question");
+
+        }
+
+
+        /**
+
+         * <p>Test: Staff can view question-answer relationships</p>
+
+         * <p>
+
+         * Verifies that staff can properly track which answers belong to which questions,
+
+         * enabling comprehensive review of question threads.
+
+         * </p>
+
+         * 
+
+         * @throws SQLException If database error occurs
+
+         */
+
+        @Test
+
+        @DisplayName("Test 35: Staff can track question-answer relationships")
+
+        void testStaffCanTrackQuestionAnswerRelationships() throws SQLException {
+
+            Question q = new Question("Parent Question", "Question content", testUser1.getUserName());
+
+            int qId = db.createQuestion(q);
+
+            
+
+            Answer a1 = new Answer(qId, "Answer 1", testUser1.getUserName());
+
+            Answer a2 = new Answer(qId, "Answer 2", testUser2.getUserName());
+
+            
+
+            db.createAnswer(a1);
+
+            db.createAnswer(a2);
+
+            
+
+            Question retrieved = db.getQuestionById(qId);
+
+            List<Answer> answers = db.getAnswersForQuestion(qId);
+
+            
+
+            assertNotNull(retrieved, "Should retrieve question");
+
+            assertEquals(2, answers.size(), "Should have 2 answers");
+
+            
+
+            for (Answer answer : answers) {
+
+                assertEquals(qId, answer.getQuestionId(), "Answer should link to correct question");
+
+            }
+
+        }
+
+
+        /**
+
+         * <p>Test: Staff role assignment</p>
+
+         * <p>
+
+         * Verifies that users can be properly assigned the Staff role through the
+
+         * admin interface.
+
+         * </p>
+
+         * 
+
+         * @throws SQLException If database error occurs
+
+         */
+
+        @Test
+
+        @DisplayName("Test 36: Staff role can be assigned")
+
+        void testStaffRoleAssignment() throws SQLException {
+
+            User testStaff = new User("staffUser", "Pass123!", "Student");
+
+            testStaff.setEmail("staff@test.edu");
+
+            db.register(testStaff);
+
+            
+
+            // Admin changes role to Staff
+
+            boolean updated = db.updateUserRole("staffUser", "Staff");
+
+            
+
+            assertTrue(updated, "Role update should succeed");
+
+            
+
+            String newRole = db.getUserRole("staffUser");
+
+            assertEquals("Staff", newRole, "User should have Staff role");
+
+        }
+
+
+        /**
+
+         * <p>Test: Staff can view reviews</p>
+
+         * <p>
+
+         * Verifies that staff members can access and review all reviews posted by reviewers,
+
+         * enabling monitoring of review quality.
+
+         * </p>
+
+         * 
+
+         * @throws SQLException If database error occurs
+
+         */
+
+        @Test
+
+        @DisplayName("Test 37: Staff can view all reviews")
+
+        void testStaffCanViewReviews() throws SQLException {
+
+            Question q = new Question("Test Question", "Test content", testUser1.getUserName());
+
+            int qId = db.createQuestion(q);
+
+            
+
+            Answer a = new Answer(qId, "Test answer", testUser2.getUserName());
+
+            int aId = db.createAnswer(a);
+
+            
+
+            db.addReview(aId, "reviewerUser", "This is a helpful review");
+
+            
+
+            List<Review> reviews = db.getAllReviews(null);
+
+            
+
+            assertFalse(reviews.isEmpty(), "Staff should see reviews");
+
+            assertTrue(reviews.stream().anyMatch(r -> r.getAnswerId() == aId), "Should include the test review");
+
+        }
+
+
+        /**
+
+         * <p>Test: Staff monitoring statistics</p>
+
+         * <p>
+
+         * Verifies that staff can access statistical information about system usage
+
+         * to identify trends and potential issues.
+
+         * </p>
+
+         * 
+
+         * @throws SQLException If database error occurs
+
+         */
+
+        @Test
+
+        @DisplayName("Test 38: Staff can access system statistics")
+
+        void testStaffCanAccessStatistics() throws SQLException {
+
+            // Create sample data
+
+            Question q1 = new Question("Question 1", "Content 1", testUser1.getUserName());
+
+            Question q2 = new Question("Question 2", "Content 2", testUser2.getUserName());
+
+            
+
+            int qId1 = db.createQuestion(q1);
+
+            int qId2 = db.createQuestion(q2);
+
+            
+
+            Answer a1 = new Answer(qId1, "Answer 1", testUser1.getUserName());
+
+            Answer a2 = new Answer(qId2, "Answer 2", testUser2.getUserName());
+
+            
+
+            db.createAnswer(a1);
+
+            db.createAnswer(a2);
+
+            
+
+            // Staff should be able to count questions and answers
+
+            List<Question> allQuestions = db.getAllQuestions(null);
+
+            int totalAnswers = 0;
+
+            for (Question q : allQuestions) {
+
+                totalAnswers += db.getAnswersForQuestion(q.getId()).size();
+
+            }
+
+            
+
+            assertTrue(allQuestions.size() >= 2, "Should have at least 2 questions");
+
+            assertTrue(totalAnswers >= 2, "Should have at least 2 answers");
+
+        }
+
+
+        /**
+
+         * <p>Test: Staff can identify high-activity questions</p>
+
+         * <p>
+
+         * Verifies that staff can identify questions with high engagement
+
+         * (many answers or interactions) that may need special attention.
+
+         * </p>
+
+         * 
+
+         * @throws SQLException If database error occurs
+
+         */
+
+        @Test
+
+        @DisplayName("Test 39: Staff can identify high-activity questions")
+
+        void testStaffCanIdentifyHighActivityQuestions() throws SQLException {
+
+            Question q = new Question("Popular Question", "Lots of interest in this", testUser1.getUserName());
+
+            int qId = db.createQuestion(q);
+
+            
+
+            // Add multiple answers
+
+            for (int i = 0; i < 5; i++) {
+
+                Answer a = new Answer(qId, "Answer " + i, testUser1.getUserName());
+
+                db.createAnswer(a);
+
+            }
+
+            
+
+            Question retrieved = db.getQuestionById(qId);
+
+            List<Answer> answers = db.getAnswersForQuestion(qId);
+
+            
+
+            assertNotNull(retrieved, "Should retrieve question");
+
+            assertEquals(5, answers.size(), "Should have 5 answers");
+
+            assertTrue(answers.size() >= 5, "High activity question should have many answers");
+
+        }
+
+
+        /**
+
+         * <p>Test: Staff can monitor private message volume</p>
+
+         * <p>
+
+         * Verifies that staff can track the volume of private feedback being exchanged,
+
+         * which may indicate engagement or potential issues.
+
+         * </p>
+
+         * 
+
+         * @throws SQLException If database error occurs
+
+         */
+
+        @Test
+
+        @DisplayName("Test 40: Staff can monitor private message activity")
+
+        void testStaffCanMonitorPrivateMessageActivity() throws SQLException {
+
+            Question q = new Question("Question with feedback", "Test content", testUser1.getUserName());
+
+            int qId = db.createQuestion(q);
+
+            
+
+            // Add multiple private messages
+
+            db.addPrivateMessage(qId, testUser2.getUserName(), testUser1.getUserName(), "QUESTION", "Feedback 1");
+
+            db.addPrivateMessage(qId, testUser1.getUserName(), testUser2.getUserName(), "ANSWER", "Response 1");
+
+            db.addPrivateMessage(qId, testUser2.getUserName(), testUser1.getUserName(), "QUESTION", "Feedback 2");
+
+            
+
+            List<DatabaseHelper.PrivateMessage> messages = db.getPrivateMessagesForQuestion(qId);
+
+            
+
+            assertEquals(3, messages.size(), "Should have 3 private messages");
+
+            assertTrue(messages.size() >= 3, "Staff should see active private communication");
+
+        }
+        
+        /**
+
+         * <p>Test: Staff can flag questions</p>
+
+         * <p>
+
+         * Verifies that staff members can flag questions for instructor review
+
+         * and that the flag is properly stored in the database.
+
+         * </p>
+
+         * 
+
+         * @throws SQLException If database error occurs
+
+         */
+
+        @Test
+
+        @DisplayName("Test 41: Staff can flag questions")
+
+        void testStaffCanFlagQuestions() throws SQLException {
+
+            Question q = new Question("Questionable content", "This might need review", testUser1.getUserName());
+
+            int qId = db.createQuestion(q);
+
+            
+
+            int flagId = db.addStaffFlag("QUESTION", qId, "staffUser", "Inappropriate language");
+
+            
+
+            assertTrue(flagId > 0, "Flag ID should be positive");
+
+            
+
+            List<DatabaseHelper.StaffFlag> flags = db.getOpenStaffFlags();
+
+            assertTrue(flags.stream().anyMatch(f -> f.getItemId() == qId), "Should find the flagged question");
+
+        }
+
+
+        /**
+
+         * <p>Test: Staff can add notes to questions</p>
+
+         * <p>
+
+         * Verifies that staff members can add internal notes to questions
+
+         * for tracking and communication purposes.
+
+         * </p>
+
+         * 
+
+         * @throws SQLException If database error occurs
+
+         */
+
+        @Test
+
+        @DisplayName("Test 42: Staff can add notes to questions")
+
+        void testStaffCanAddNotes() throws SQLException {
+
+            Question q = new Question("Test Question", "Test content", testUser1.getUserName());
+
+            int qId = db.createQuestion(q);
+
+            
+
+            int noteId = db.addStaffNote(qId, "This question needs monitoring", "staffUser");
+
+            
+
+            assertTrue(noteId > 0, "Note ID should be positive");
+
+            
+
+            List<DatabaseHelper.StaffNote> notes = db.getStaffNotes(qId);
+
+            assertEquals(1, notes.size(), "Should have one note");
+
+            assertEquals("This question needs monitoring", notes.get(0).getNoteText(), "Note text should match");
+
+        }
+
+
+        /**
+
+         * <p>Test: Staff can post reviews on answers</p>
+
+         * <p>
+
+         * Verifies that staff members can post reviews on answers
+
+         * to help guide students toward quality responses.
+
+         * </p>
+
+         * 
+
+         * @throws SQLException If database error occurs
+
+         */
+
+        @Test
+
+        @DisplayName("Test 43: Staff can post reviews on answers")
+
+        void testStaffCanPostReviews() throws SQLException {
+
+            Question q = new Question("Test Question", "Test content", testUser1.getUserName());
+
+            int qId = db.createQuestion(q);
+
+            
+
+            Answer a = new Answer(qId, "Test answer content", testUser2.getUserName());
+
+            int aId = db.createAnswer(a);
+
+            
+
+            db.addReview(aId, "staffUser", "This is a helpful and well-researched answer");
+
+            
+
+            List<Review> reviews = db.getAllReviews(null);
+
+            assertTrue(reviews.stream().anyMatch(r -> r.getAnswerId() == aId), "Should find review for answer");
+
+        }
     }
    
