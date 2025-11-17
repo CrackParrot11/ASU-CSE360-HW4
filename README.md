@@ -79,6 +79,7 @@ The Staff Role implementation includes the following capabilities:
 ---
 
 ## 📁 Project Structure
+```
 ASU-CSE360-HW4/
 ├── Dev/
 │   └── FoundationCode/
@@ -121,6 +122,7 @@ ASU-CSE360-HW4/
 │       └── .project
 ├── README.md
 └── .gitignore
+```
 👥 Contributors
 Developer: [Anthony Ridings]
 Course: CSE 360 - Introduction to Software Engineering
