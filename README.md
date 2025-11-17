@@ -1,101 +1,173 @@
-# Team 16 Project
+# ASU CSE360 HW4 - Student Question and Answer System (sQaaS™)
+## Staff Role Implementation
+# Anthony Ridings
 
-**Team Members:**  
-  
-Luke Sherry  
-Anthony Ridings  
-Preston Roser  
-Max Gushchin  
-Tanner Urness  
+Screencast link ---> https://drive.google.com/file/d/1dx3e8SnPChbrsP-PIYuI4N9Db2xcqSDO/view?usp=sharing
 
-# Documents
-### [Phase 1 Submission Document](https://docs.google.com/document/d/14wqnznDZ5PcifIVyaA14czP5GYDa2WvjKiTzikE76FY/edit?usp=sharing)
-### [Phase 2 Submission Document](https://docs.google.com/document/d/1llOriFrgakeg_eskGuElmqV3B5nS_eDJ0IAuScePs9A/edit?usp=sharing)
-### [Phase 3 Submission Document](https://docs.google.com/document/d/1dM2R8Zpxl-NGnDiY7QbAFURE1YkJaYTFgAx1bi3a8Wo/edit?usp=sharing)
-### [UML Diagrams](DesignDocuments/UML)
+**Course:** CSE 360 - Introduction to Software Engineering  
+**Semester:** Fall 2024  
+**Assignment:** Homework 4 - Staff Role Epic Implementation  
+**Repository:** https://github.com/CrackParrot11/ASU-CSE360-HW4
 
-# Code Files
-  ### [Database](FoundationCode/src/databasePart1/DatabaseHelper.java)
-  ### [Application](FoundationCode/src/application)
-  ### [Review](FoundationCode/src/application/Review.java)
-  ### [ReviewReply](FoundationCode/src/application/ReviewReply.java)
-  ### [QA Page (Includes reviews)](FoundationCode/src/application/StudentQAPage.java)
-  ### [User Home Page (Review requests)](FoundationCode/src/application/UserHomePage.java)
-  ### [Automated Testing](FoundationCode/src/application/QASystemTest.java)
-  <br/>
+---
+
+## 📋 Table of Contents
+- [Project Overview](#project-overview)
+- [Staff Role Features](#staff-role-features)
+- [Project Structure](#project-structure)
+- [Prerequisites](#prerequisites)
+- [Building the Project](#building-the-project)
+- [Running the Application](#running-the-application)
+- [Testing](#testing)
+- [Documentation](#documentation)
+- [User Stories Implemented](#user-stories-implemented)
+- [Database Schema](#database-schema)
+- [Contributors](#contributors)
+
+---
+
+## 🎯 Project Overview
+
+This project implements a **Student Question and Answer System (sQaaS™)** with a focus on the **Staff Role** functionality. The Staff role enables designated users to monitor and assess interactions within the Q&A system, helping to identify potential issues early and maintain a positive learning environment.
+
+### Key Components
+- **Admin Role**: User management, invitation codes, role assignment
+- **Student Role**: Ask questions, provide answers, review system
+- **Reviewer Role**: Post reviews on answers, provide expert guidance
+- **Staff Role** ⭐ **(NEW - HW4)**: Monitor system activity, flag content, post reviews, add notes
+
+---
+
+## ✨ Staff Role Features
+
+The Staff Role implementation includes the following capabilities:
+
+### 1. **System Overview Dashboard**
+- View system-wide statistics (questions, answers, reviews, private messages)
+- Monitor resolution rates and system health
+- Track recent activity highlights
+
+### 2. **Question Review Interface**
+- View all questions with filtering options (All/Unresolved/Resolved/Flagged)
+- Access detailed question information including answers and private feedback
+- Add internal staff notes to questions for tracking
+- Flag inappropriate questions for instructor review
+
+### 3. **Answer Review Interface**
+- View all answers with sorting options (Recent/Upvoted/By Reviewers)
+- Post reviews on answers to guide quality standards
+- Flag problematic answers for instructor attention
+- View question context for each answer
+
+### 4. **Reviews Monitoring**
+- Dedicated tab to view all reviews posted in the system
+- Monitor review quality across all reviewers
+- Track which answers have been reviewed
+- Quick access to question threads from reviews
+
+### 5. **Private Feedback Monitoring**
+- Review all private feedback messages between users
+- Identify potential conflicts or communication issues
+- View conversation context and participants
+
+### 6. **Alerts & Flagging System**
+- Automated alerts for unanswered questions
+- Alerts for high-activity unresolved questions
+- View all flagged content with reasons
+- Quick access to flagged items for review
+
+---
+
+## 📁 Project Structure
+ASU-CSE360-HW4/
+├── Dev/
+│   └── FoundationCode/
+│       ├── src/
+│       │   ├── application/
+│       │   │   ├── AdminHomePage.java
+│       │   │   ├── AdminSetupPage.java
+│       │   │   ├── Answer.java
+│       │   │   ├── AnswerFeedback.java
+│       │   │   ├── FirstPage.java
+│       │   │   ├── InputValidator.java
+│       │   │   ├── InvitationPage.java
+│       │   │   ├── PasswordEvaluator.java
+│       │   │   ├── PasswordEvaluationTestingAutomation.java
+│       │   │   ├── QASystemTest.java ⭐ (Updated with 13 new tests)
+│       │   │   ├── Question.java
+│       │   │   ├── Review.java
+│       │   │   ├── ReviewReply.java
+│       │   │   ├── SetupAccountPage.java
+│       │   │   ├── SetupLoginSelectionPage.java
+│       │   │   ├── SpellChecker.java
+│       │   │   ├── StaffHomePage.java ⭐ (NEW - Complete Staff Interface)
+│       │   │   ├── StartCSE360.java
+│       │   │   ├── StudentQAPage.java
+│       │   │   ├── User.java
+│       │   │   ├── UserDatabaseUI.java
+│       │   │   ├── UserHomePage.java
+│       │   │   ├── UserLoginPage.java
+│       │   │   └── WelcomeLoginPage.java
+│       │   ├── databasePart1/
+│       │   │   └── DatabaseHelper.java ⭐ (Updated with Staff methods)
+│       │   └── styles.css
+│       ├── doc/ ⭐ (Javadoc HTML documentation)
+│       │   ├── index.html
+│       │   ├── application/
+│       │   └── databasePart1/
+│       ├── lib/
+│       │   └── h2-2.2.220.jar
+│       ├── .classpath
+│       └── .project
+├── README.md
+└── .gitignore
+👥 Contributors
+Developer: [Anthony Ridings]
+Course: CSE 360 - Introduction to Software Engineering
+Institution: Arizona State University
+Semester: Fall 2024
+
+📄 License
+This project is created for educational purposes as part of CSE 360 coursework at Arizona State University.
+
+🔗 Related Links
+
+GitHub Repository: https://github.com/CrackParrot11/ASU-CSE360-HW4
+Source Code: https://github.com/CrackParrot11/ASU-CSE360-HW4/tree/Dev/FoundationCode
+Javadoc: https://github.com/CrackParrot11/ASU-CSE360-HW4/tree/Dev/FoundationCode/doc
 
 
-# Phase 3
-## Stand Up Notes
-  ### [Meeting Notes](https://docs.google.com/document/d/1EFOjhE8FrSC1v7Hru8IB9p5n014Qgz6FcmqFbZbMYh8/edit?usp=sharing)
-## Screencasts
-  Required passcodes included below links
-  ### [Stand Up Meeting 1](https://us06web.zoom.us/rec/share/ddHsPj6hIZvky6pBxeBvcnH3Qvp9Yr8fl8LJ4GiDdpg8tGA9y7tdDa20HUM_8pzi.kuvSIxAOrz-BInY1?startTime=1762219056000)
-      uv^RXJ44
-  ### [Stand Up Meeting 2](https://us06web.zoom.us/rec/share/ddHsPj6hIZvky6pBxeBvcnH3Qvp9Yr8fl8LJ4GiDdpg8tGA9y7tdDa20HUM_8pzi.kuvSIxAOrz-BInY1?startTime=1762221519000)
-    uv^RXJ44
-  ### [Stand Up Meeting 3](https://us06web.zoom.us/rec/share/UamhUcdDrWE3JKqo6f7Ou2UVKAsZcyEFHR1Z24g7FMCBIACS10-fRc7zwUHSPz2b.BH2X1PBni-s0l9rp?startTime=1762305899000)
-    YSLG1DB&
-  ### [Stand Up Meeting 4](https://us06web.zoom.us/rec/share/tom1sLvw6vgNGnh1_dAdwnSOOAkNuwVqd2nhtTWru8Y1ZDtPigIRaAGv-l9uFciM.zfT12oLxh1tsiK5P?startTime=1762392451000)
-    c@dTs7TK
-  ### [Stand Up Meeting 5](https://us06web.zoom.us/rec/share/xUcS1kEQChBtOXzNTIntbPeq6LwuZ5ljpl2D1zFvcArahaUyFj9jqJBA1p6ljy-Z.yfVgbkDv1UNj93mb?startTime=1762729283000)
-    L#nH6kgT
-  ### [Stand Up Meeting 6](https://us06web.zoom.us/rec/share/yHxSnI9LI5n0K4jektVB_o072hKiNMRjCOgnWcREYNXVW9vwg4XCKF3Rty7YyY8w.biWeJJb15290iCNH?startTime=1762749983000)
-    9yzR$wF+
-  ### [Code and Demonstration Screencast](https://us06web.zoom.us/rec/share/yHxSnI9LI5n0K4jektVB_o072hKiNMRjCOgnWcREYNXVW9vwg4XCKF3Rty7YyY8w.biWeJJb15290iCNH?startTime=1762751608000)
-    9yzR$wF+
-  ### [Design and Architecture Screencast](https://us06web.zoom.us/rec/share/yHxSnI9LI5n0K4jektVB_o072hKiNMRjCOgnWcREYNXVW9vwg4XCKF3Rty7YyY8w.biWeJJb15290iCNH?startTime=1762753317000)
-    9yzR$wF+
-<br/>
+❓ Troubleshooting
+Common Issues
+Problem: JavaFX classes not found
 
-# Phase 2
-## Stand Up Notes
-  ### [Meeting Notes](https://docs.google.com/document/u/0/d/1eHzESF_Z1KJcoYjKarCtia5qfobBd9ir6N6hje0n6RI/edit)
-## Screencasts
-  Required passcodes included below links
-  ### [Stand Up Meeting 1](https://us06web.zoom.us/rec/share/H4GUck1dck1ELfL4z9UhylxOKKNewSDEi0patNZSZlCXAOJRmr3KoaSYIihQ7VAA.MP0yu5kbCx-hPlkp?startTime=1759629406000)
-    9p*m*6yT
-  ### [Stand Up Meeting 2](https://us06web.zoom.us/rec/share/lKTGt0rq2TDAIH-_MYjCObKLIPcCMGGSgG3BkHZOMUfRDHW_3pHzkJs4IvSJIa1i.upiUtisKfrAKxX9H?startTime=1760314765000)
-    0.KsuF0r
-  ### [Stand Up Meeting 3](https://us06web.zoom.us/rec/share/lKTGt0rq2TDAIH-_MYjCObKLIPcCMGGSgG3BkHZOMUfRDHW_3pHzkJs4IvSJIa1i.upiUtisKfrAKxX9H?startTime=1760317355000)
-    0.KsuF0r
-  ### [Stand Up Meeting 4](https://us06web.zoom.us/rec/share/eFjF3G2110ktnIgCEUw3NShvuhGFWdWp2S2SzcayhvQ25nGgEsUZ9-1qEGH4uc5X.jJmUadApARNsLwEz?startTime=1760405733000)
-    $B1.Jd!7
-  ### [Stand Up Meeting 5](https://us06web.zoom.us/rec/share/fXXTeJFAIkqV9r7_W9sHzUrFlXfgvxEn1lZpcA-qdUT8f-YnCjn-n3Nysb7l_fWG.YPBGxaEd4uHB-HgG?startTime=1760491940000)
-    e2W+7zSA
-  ### [Stand Up Meeting 6](https://us06web.zoom.us/rec/share/1CE9sTYcQunJRWVypmgpvSNhQATGLhHgtzB5l-SuX-EM40IY528GaAojAGWIMk-K.tYDArZWrMMO6X5dJ?startTime=1760578017000)
-    i5k+AHx@
-  ### [Requirements Code / Automated Testing](https://youtu.be/6XGHCSLfxy0)
-    No Password
-  
-  ### [Manual Testing / GUI Showcase](https://us06web.zoom.us/rec/share/fXXTeJFAIkqV9r7_W9sHzUrFlXfgvxEn1lZpcA-qdUT8f-YnCjn-n3Nysb7l_fWG.YPBGxaEd4uHB-HgG?startTime=1760492978000)
-    e2W+7zSA
- <br/>
- 
-# Phase 1
-## Screencasts
+Solution: Ensure JavaFX SDK is added to build path and VM arguments are set correctly
 
-  Required passcodes included below links
+Problem: H2 Database error
 
-  ### [Team Kickoff](https://youtu.be/hyKi1bHiibY)
+Solution: Verify h2-2.2.220.jar is in classpath. Delete ~/FoundationDatabase.mv.db to reset database
 
-  ### [Stand Up Meeting 1](https://us06web.zoom.us/rec/share/9paRBDqRTcmS_Y18YRjB7lLTcxad64GBaMrMfp-v0nPz8aTfT5JNaFA0Fl-1lv57.KLrEoU8yt6YoSQ78?startTime=1758237984000)
-    6f%D3*T%
-    
-  ### [Stand Up Meeting 2](https://us06web.zoom.us/rec/share/1i2Fm6NnizQ9u6FPwYjPilE9xjEMI2voNc_iaCgJC63TpEZaN7-P1eciRztEI7l_.qenE1IVuYYqBpy6f?startTime=1758417389000)
-    22z4^&lC
+Problem: JUnit tests fail
 
-  ### [Screencast 1](https://us06web.zoom.us/rec/share/1i2Fm6NnizQ9u6FPwYjPilE9xjEMI2voNc_iaCgJC63TpEZaN7-P1eciRztEI7l_.qenE1IVuYYqBpy6f?startTime=1758425285000)
-    22z4^&lC
+Solution: Ensure JUnit 5 is in build path. Clean and rebuild project
 
-  ### [Screencast 2](https://us06web.zoom.us/rec/share/1i2Fm6NnizQ9u6FPwYjPilE9xjEMI2voNc_iaCgJC63TpEZaN7-P1eciRztEI7l_.qenE1IVuYYqBpy6f?startTime=1758427156000)
-    22z4^&lC
-  <br/>
-  
-  
-## Meeting Notes
-  [09/16](https://docs.google.com/document/d/1vCtNPmaECGbodicpcUyhe3aNaatwFgugQZRCIvWDzg8/edit?usp=drive_link)  
-  [09/17](https://docs.google.com/document/d/1VacifkkNHZYkXCdSV5KWakFC9_aH_InTU6hKIsYo9Qc/edit?usp=drive_link)  
-  [09/18](https://docs.google.com/document/d/1UibDY8UoYu-wbA9s8DdI92A4KjxG4YbabHJ5LZpmXco/edit?usp=drive_link)  
-  [09/20](https://docs.google.com/document/d/1ToEDXwvlxJcdma2esPgzm_qf82689Q4crAA5siuw_cM/edit?usp=drive_link)  
-  
+Problem: Cannot access Staff Dashboard
+
+Solution: Ensure user role is set to "Staff" in database. Log out and log back in
+
+Problem: Module errors
+
+Solution: Update VM arguments with correct JavaFX module path
+
+
+📞 Support
+For issues or questions:
+
+Check the Javadoc documentation
+Review this README
+Check course discussion board
+Contact course instructor or TA
+
+
+Last Updated: December 2024
+Version: 1.0.0 (HW4 Staff Role Implementation)
