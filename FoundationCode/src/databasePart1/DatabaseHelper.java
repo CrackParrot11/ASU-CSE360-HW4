@@ -76,11 +76,285 @@ public class DatabaseHelper {
         		+ ")";
         statement.execute(userTable);
         createQATables();
+        createStaffTables();
+        createQATables();
         String invitationCodesTable = "CREATE TABLE IF NOT EXISTS InvitationCodes ("
                 + "code VARCHAR(10) PRIMARY KEY, "
                 + "isUsed BOOLEAN DEFAULT FALSE, "
                 + "expiresAt TIMESTAMP)";
         statement.execute(invitationCodesTable);
+    }
+    
+    /**
+     * Adds a staff flag for a question or answer.
+     * 
+     * @param itemType Type of item ("QUESTION" or "ANSWER")
+     * @param itemId ID of the flagged item
+     * @param flaggedBy Username of staff member flagging
+     * @param reason Reason for flagging
+     * @return The generated flag ID
+     * @throws SQLException If a database error occurs
+     */
+    public int addStaffFlag(String itemType, int itemId, String flaggedBy, String reason) throws SQLException {
+        String sql = "INSERT INTO staff_flags (itemType, itemId, flaggedBy, reason) VALUES (?, ?, ?, ?)";
+        try (PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            ps.setString(1, itemType);
+            ps.setInt(2, itemId);
+            ps.setString(3, flaggedBy);
+            ps.setString(4, reason);
+            ps.executeUpdate();
+            
+            try (ResultSet keys = ps.getGeneratedKeys()) {
+                if (keys.next()) {
+                    return keys.getInt(1);
+                }
+            }
+        }
+        throw new SQLException("Failed to add staff flag");
+    }
+
+    /**
+     * Adds a staff note to a question.
+     * 
+     * @param questionId ID of the question
+     * @param noteText Content of the note
+     * @param createdBy Username of staff member
+     * @return The generated note ID
+     * @throws SQLException If a database error occurs
+     */
+    public int addStaffNote(int questionId, String noteText, String createdBy) throws SQLException {
+        String sql = "INSERT INTO staff_notes (questionId, noteText, createdBy) VALUES (?, ?, ?)";
+        try (PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            ps.setInt(1, questionId);
+            ps.setString(2, noteText);
+            ps.setString(3, createdBy);
+            ps.executeUpdate();
+            
+            try (ResultSet keys = ps.getGeneratedKeys()) {
+                if (keys.next()) {
+                    return keys.getInt(1);
+                }
+            }
+        }
+        throw new SQLException("Failed to add staff note");
+    }
+
+    /**
+     * Gets all staff notes for a question.
+     * 
+     * @param questionId ID of the question
+     * @return List of staff notes
+     * @throws SQLException If a database error occurs
+     */
+    public List<StaffNote> getStaffNotes(int questionId) throws SQLException {
+        List<StaffNote> notes = new ArrayList<>();
+        String sql = "SELECT * FROM staff_notes WHERE questionId = ? ORDER BY createdAt DESC";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, questionId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    notes.add(new StaffNote(
+                        rs.getInt("id"),
+                        rs.getInt("questionId"),
+                        rs.getString("noteText"),
+                        rs.getString("createdBy"),
+                        rs.getTimestamp("createdAt").toLocalDateTime()
+                    ));
+                }
+            }
+        }
+        return notes;
+    }
+
+    /**
+     * Gets all open staff flags.
+     * 
+     * @return List of staff flags
+     * @throws SQLException If a database error occurs
+     */
+    public List<StaffFlag> getOpenStaffFlags() throws SQLException {
+        List<StaffFlag> flags = new ArrayList<>();
+        String sql = "SELECT * FROM staff_flags WHERE status = 'OPEN' ORDER BY createdAt DESC";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    flags.add(new StaffFlag(
+                        rs.getInt("id"),
+                        rs.getString("itemType"),
+                        rs.getInt("itemId"),
+                        rs.getString("flaggedBy"),
+                        rs.getString("reason"),
+                        rs.getString("status"),
+                        rs.getTimestamp("createdAt").toLocalDateTime()
+                    ));
+                }
+            }
+        }
+        return flags;
+    }
+
+    /**
+     * Inner class to represent a staff note.
+     */
+    public static class StaffNote {
+        private final int id;
+        private final int questionId;
+        private final String noteText;
+        private final String createdBy;
+        private final LocalDateTime createdAt;
+        
+        /**
+         * Constructs a new StaffNote.
+         * 
+         * @param id Note ID
+         * @param questionId Question ID
+         * @param noteText Note content
+         * @param createdBy Creator username
+         * @param createdAt Creation timestamp
+         */
+        public StaffNote(int id, int questionId, String noteText, String createdBy, LocalDateTime createdAt) {
+            this.id = id;
+            this.questionId = questionId;
+            this.noteText = noteText;
+            this.createdBy = createdBy;
+            this.createdAt = createdAt;
+        }
+        
+        /**
+         * Gets the note ID.
+         * @return Note ID
+         */
+        public int getId() { return id; }
+        
+        /**
+         * Gets the question ID.
+         * @return Question ID
+         */
+        public int getQuestionId() { return questionId; }
+        
+        /**
+         * Gets the note text.
+         * @return Note text
+         */
+        public String getNoteText() { return noteText; }
+        
+        /**
+         * Gets the creator username.
+         * @return Creator username
+         */
+        public String getCreatedBy() { return createdBy; }
+        
+        /**
+         * Gets the creation timestamp.
+         * @return Creation timestamp
+         */
+        public LocalDateTime getCreatedAt() { return createdAt; }
+    }
+
+    /**
+     * Inner class to represent a staff flag.
+     */
+    public static class StaffFlag {
+        private final int id;
+        private final String itemType;
+        private final int itemId;
+        private final String flaggedBy;
+        private final String reason;
+        private final String status;
+        private final LocalDateTime createdAt;
+        
+        /**
+         * Constructs a new StaffFlag.
+         * 
+         * @param id Flag ID
+         * @param itemType Type of flagged item
+         * @param itemId ID of flagged item
+         * @param flaggedBy Flagger username
+         * @param reason Reason for flag
+         * @param status Flag status
+         * @param createdAt Creation timestamp
+         */
+        public StaffFlag(int id, String itemType, int itemId, String flaggedBy, 
+                         String reason, String status, LocalDateTime createdAt) {
+            this.id = id;
+            this.itemType = itemType;
+            this.itemId = itemId;
+            this.flaggedBy = flaggedBy;
+            this.reason = reason;
+            this.status = status;
+            this.createdAt = createdAt;
+        }
+        
+        /**
+         * Gets the flag ID.
+         * @return Flag ID
+         */
+        public int getId() { return id; }
+        
+        /**
+         * Gets the item type.
+         * @return Item type
+         */
+        public String getItemType() { return itemType; }
+        
+        /**
+         * Gets the item ID.
+         * @return Item ID
+         */
+        public int getItemId() { return itemId; }
+        
+        /**
+         * Gets the flagger username.
+         * @return Flagger username
+         */
+        public String getFlaggedBy() { return flaggedBy; }
+        
+        /**
+         * Gets the flag reason.
+         * @return Flag reason
+         */
+        public String getReason() { return reason; }
+        
+        /**
+         * Gets the flag status.
+         * @return Flag status
+         */
+        public String getStatus() { return status; }
+        
+        /**
+         * Gets the creation timestamp.
+         * @return Creation timestamp
+         */
+        public LocalDateTime getCreatedAt() { return createdAt; }
+    }
+    
+    
+    /**
+     * Creates tables for staff flags and notes in the database.
+     * 
+     * @throws SQLException If a database error occurs
+     */
+    private void createStaffTables() throws SQLException {
+        String flagsTable = "CREATE TABLE IF NOT EXISTS staff_flags ("
+                + "id INT AUTO_INCREMENT PRIMARY KEY, "
+                + "itemType VARCHAR(20) NOT NULL, "
+                + "itemId INT NOT NULL, "
+                + "flaggedBy VARCHAR(20) NOT NULL, "
+                + "reason VARCHAR(500) NOT NULL, "
+                + "status VARCHAR(20) DEFAULT 'OPEN', "
+                + "createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
+                + "FOREIGN KEY (flaggedBy) REFERENCES cse360users(userName))";
+        statement.execute(flagsTable);
+        
+        String notesTable = "CREATE TABLE IF NOT EXISTS staff_notes ("
+                + "id INT AUTO_INCREMENT PRIMARY KEY, "
+                + "questionId INT NOT NULL, "
+                + "noteText VARCHAR(1000) NOT NULL, "
+                + "createdBy VARCHAR(20) NOT NULL, "
+                + "createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
+                + "FOREIGN KEY (questionId) REFERENCES questions(id) ON DELETE CASCADE, "
+                + "FOREIGN KEY (createdBy) REFERENCES cse360users(userName))";
+        statement.execute(notesTable);
     }
     
     /**
