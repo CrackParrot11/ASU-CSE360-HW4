@@ -1026,173 +1026,120 @@ public class QASystemTest {
 
 
         /**
-
          * <p>Test: Staff role assignment</p>
-
          * <p>
-
          * Verifies that users can be properly assigned the Staff role through the
-
          * admin interface.
-
          * </p>
-
          * 
-
          * @throws SQLException If database error occurs
-
          */
-
         @Test
-
         @DisplayName("Test 36: Staff role can be assigned")
-
         void testStaffRoleAssignment() throws SQLException {
-
-            User testStaff = new User("staffUser", "Pass123!", "Student");
-
-            testStaff.setEmail("staff@test.edu");
-
-            db.register(testStaff);
-
-            
-
-            // Admin changes role to Staff
-
-            boolean updated = db.updateUserRole("staffUser", "Staff");
-
-            
-
-            assertTrue(updated, "Role update should succeed");
-
-            
-
-            String newRole = db.getUserRole("staffUser");
-
-            assertEquals("Staff", newRole, "User should have Staff role");
-
-        }
-
-
-        /**
-
-         * <p>Test: Staff can view reviews</p>
-
-         * <p>
-
-         * Verifies that staff members can access and review all reviews posted by reviewers,
-
-         * enabling monitoring of review quality.
-
-         * </p>
-
-         * 
-
-         * @throws SQLException If database error occurs
-
-         */
-
-        @Test
-
-        @DisplayName("Test 37: Staff can view all reviews")
-
-        void testStaffCanViewReviews() throws SQLException {
-
-            Question q = new Question("Test Question", "Test content", testUser1.getUserName());
-
-            int qId = db.createQuestion(q);
-
-            
-
-            Answer a = new Answer(qId, "Test answer", testUser2.getUserName());
-
-            int aId = db.createAnswer(a);
-
-            
-
-            db.addReview(aId, "reviewerUser", "This is a helpful review");
-
-            
-
-            List<Review> reviews = db.getAllReviews(null);
-
-            
-
-            assertFalse(reviews.isEmpty(), "Staff should see reviews");
-
-            assertTrue(reviews.stream().anyMatch(r -> r.getAnswerId() == aId), "Should include the test review");
-
-        }
-
-
-        /**
-
-         * <p>Test: Staff monitoring statistics</p>
-
-         * <p>
-
-         * Verifies that staff can access statistical information about system usage
-
-         * to identify trends and potential issues.
-
-         * </p>
-
-         * 
-
-         * @throws SQLException If database error occurs
-
-         */
-
-        @Test
-
-        @DisplayName("Test 38: Staff can access system statistics")
-
-        void testStaffCanAccessStatistics() throws SQLException {
-
-            // Create sample data
-
-            Question q1 = new Question("Question 1", "Content 1", testUser1.getUserName());
-
-            Question q2 = new Question("Question 2", "Content 2", testUser2.getUserName());
-
-            
-
-            int qId1 = db.createQuestion(q1);
-
-            int qId2 = db.createQuestion(q2);
-
-            
-
-            Answer a1 = new Answer(qId1, "Answer 1", testUser1.getUserName());
-
-            Answer a2 = new Answer(qId2, "Answer 2", testUser2.getUserName());
-
-            
-
-            db.createAnswer(a1);
-
-            db.createAnswer(a2);
-
-            
-
-            // Staff should be able to count questions and answers
-
-            List<Question> allQuestions = db.getAllQuestions(null);
-
-            int totalAnswers = 0;
-
-            for (Question q : allQuestions) {
-
-                totalAnswers += db.getAnswersForQuestion(q.getId()).size();
-
+            // Check if user already exists, if so delete first
+            if (db.doesUserExist("staffUser")) {
+                // First remove any data that references this user
+                try {
+                    // Get all questions by this user and delete them
+                    List<Question> userQuestions = db.getAllQuestions("staffUser");
+                    for (Question q : userQuestions) {
+                        db.deleteQuestion(q.getId(), "staffUser");
+                    }
+                } catch (Exception e) {
+                    // Ignore if no questions exist
+                }
+                db.deleteUser("staffUser");
             }
-
             
+            // Create new staff user with all required fields
+            User testStaff = new User("staffUser", "Pass123!", "Student");
+            testStaff.setEmail("staff@test.edu");
+            testStaff.setFirstName("Staff");
+            testStaff.setLastName("User");
+            testStaff.setMiddleInitial("S");
+            
+            db.register(testStaff);
+            
+            // Admin changes role to Staff
+            boolean updated = db.updateUserRole("staffUser", "Staff");
+            
+            assertTrue(updated, "Role update should succeed");
+            
+            String newRole = db.getUserRole("staffUser");
+            assertEquals("Staff", newRole, "User should have Staff role");
+        }
 
+
+        /**
+         * <p>Test: Staff can view all reviews</p>
+         * <p>
+         * Verifies that staff members can access and review all reviews posted by reviewers,
+         * enabling monitoring of review quality.
+         * </p>
+         * 
+         * @throws SQLException If database error occurs
+         */
+        @Test
+        @DisplayName("Test 37: Staff can view all reviews")
+        void testStaffCanViewReviews() throws SQLException {
+            Question q = new Question("Review Test Question", "Test content for review", testUser1.getUserName());
+            int qId = db.createQuestion(q);
+            
+            Answer a = new Answer(qId, "Test answer content for review", testUser2.getUserName());
+            int aId = db.createAnswer(a);
+            
+            // Create a staff user with all required fields
+            if (!db.doesUserExist("reviewStaff")) {
+                User staffUser = new User("reviewStaff", "Pass123!", "Staff");
+                staffUser.setEmail("reviewstaff@test.edu");
+                staffUser.setFirstName("Review");
+                staffUser.setLastName("Staff");
+                staffUser.setMiddleInitial("R");
+                db.register(staffUser);
+            }
+            
+            db.addReview(aId, "reviewStaff", "This is a helpful and well-researched answer");
+            
+            List<Review> reviews = db.getAllReviews(null);
+            assertTrue(reviews.stream().anyMatch(r -> r.getAnswerId() == aId), "Should find review for answer");
+        }
+
+
+        /**
+         * <p>Test: Staff monitoring statistics</p>
+         * <p>
+         * Verifies that staff can access statistical information about system usage
+         * to identify trends and potential issues.
+         * </p>
+         * 
+         * @throws SQLException If database error occurs
+         */
+        @Test
+        @DisplayName("Test 38: Staff can access system statistics")
+        void testStaffCanAccessStatistics() throws SQLException {
+            // Use existing test users instead of creating new ones
+            Question q1 = new Question("Stats Question 1", "Content for stats 1", testUser1.getUserName());
+            Question q2 = new Question("Stats Question 2", "Content for stats 2", testUser2.getUserName());
+            
+            int qId1 = db.createQuestion(q1);
+            int qId2 = db.createQuestion(q2);
+            
+            Answer a1 = new Answer(qId1, "Answer for stats 1", testUser1.getUserName());
+            Answer a2 = new Answer(qId2, "Answer for stats 2", testUser2.getUserName());
+            
+            db.createAnswer(a1);
+            db.createAnswer(a2);
+            
+            // Staff should be able to count questions and answers
+            List<Question> allQuestions = db.getAllQuestions(null);
+            int totalAnswers = 0;
+            for (Question q : allQuestions) {
+                totalAnswers += db.getAnswersForQuestion(q.getId()).size();
+            }
+            
             assertTrue(allQuestions.size() >= 2, "Should have at least 2 questions");
-
             assertTrue(totalAnswers >= 2, "Should have at least 2 answers");
-
         }
 
 
@@ -1304,141 +1251,106 @@ public class QASystemTest {
         }
         
         /**
-
          * <p>Test: Staff can flag questions</p>
-
          * <p>
-
          * Verifies that staff members can flag questions for instructor review
-
          * and that the flag is properly stored in the database.
-
          * </p>
-
          * 
-
          * @throws SQLException If database error occurs
-
          */
-
         @Test
-
         @DisplayName("Test 41: Staff can flag questions")
-
         void testStaffCanFlagQuestions() throws SQLException {
-
-            Question q = new Question("Questionable content", "This might need review", testUser1.getUserName());
-
+            Question q = new Question("Questionable content question", "This might need review", testUser1.getUserName());
             int qId = db.createQuestion(q);
-
             
-
-            int flagId = db.addStaffFlag("QUESTION", qId, "staffUser", "Inappropriate language");
-
+            // Create a staff user with all required fields
+            if (!db.doesUserExist("flagStaff")) {
+                User staffUser = new User("flagStaff", "Pass123!", "Staff");
+                staffUser.setEmail("flagstaff@test.edu");
+                staffUser.setFirstName("Flag");
+                staffUser.setLastName("Staff");
+                staffUser.setMiddleInitial("F");
+                db.register(staffUser);
+            }
             
-
+            int flagId = db.addStaffFlag("QUESTION", qId, "flagStaff", "Inappropriate language");
+            
             assertTrue(flagId > 0, "Flag ID should be positive");
-
             
-
             List<DatabaseHelper.StaffFlag> flags = db.getOpenStaffFlags();
-
             assertTrue(flags.stream().anyMatch(f -> f.getItemId() == qId), "Should find the flagged question");
-
         }
 
 
         /**
-
          * <p>Test: Staff can add notes to questions</p>
-
          * <p>
-
          * Verifies that staff members can add internal notes to questions
-
          * for tracking and communication purposes.
-
          * </p>
-
          * 
-
          * @throws SQLException If database error occurs
-
          */
-
         @Test
-
         @DisplayName("Test 42: Staff can add notes to questions")
-
         void testStaffCanAddNotes() throws SQLException {
-
-            Question q = new Question("Test Question", "Test content", testUser1.getUserName());
-
+            Question q = new Question("Note Test Question", "Test content for notes", testUser1.getUserName());
             int qId = db.createQuestion(q);
-
             
-
-            int noteId = db.addStaffNote(qId, "This question needs monitoring", "staffUser");
-
+            // Create a staff user with all required fields
+            if (!db.doesUserExist("noteStaff")) {
+                User staffUser = new User("noteStaff", "Pass123!", "Staff");
+                staffUser.setEmail("notestaff@test.edu");
+                staffUser.setFirstName("Note");
+                staffUser.setLastName("Staff");
+                staffUser.setMiddleInitial("N");
+                db.register(staffUser);
+            }
             
-
+            int noteId = db.addStaffNote(qId, "This question needs monitoring", "noteStaff");
+            
             assertTrue(noteId > 0, "Note ID should be positive");
-
             
-
             List<DatabaseHelper.StaffNote> notes = db.getStaffNotes(qId);
-
             assertEquals(1, notes.size(), "Should have one note");
-
             assertEquals("This question needs monitoring", notes.get(0).getNoteText(), "Note text should match");
-
         }
 
 
         /**
-
          * <p>Test: Staff can post reviews on answers</p>
-
          * <p>
-
          * Verifies that staff members can post reviews on answers
-
          * to help guide students toward quality responses.
-
          * </p>
-
          * 
-
          * @throws SQLException If database error occurs
-
          */
-
         @Test
-
         @DisplayName("Test 43: Staff can post reviews on answers")
-
         void testStaffCanPostReviews() throws SQLException {
-
-            Question q = new Question("Test Question", "Test content", testUser1.getUserName());
-
+            Question q = new Question("Post Review Test Question", "Test content for post review", testUser1.getUserName());
             int qId = db.createQuestion(q);
-
             
-
-            Answer a = new Answer(qId, "Test answer content", testUser2.getUserName());
-
+            Answer a = new Answer(qId, "Test answer content for posting review", testUser2.getUserName());
             int aId = db.createAnswer(a);
-
             
-
-            db.addReview(aId, "staffUser", "This is a helpful and well-researched answer");
-
+            // Create a staff user with all required fields
+            if (!db.doesUserExist("postStaff")) {
+                User staffUser = new User("postStaff", "Pass123!", "Staff");
+                staffUser.setEmail("poststaff@test.edu");
+                staffUser.setFirstName("Post");
+                staffUser.setLastName("Staff");
+                staffUser.setMiddleInitial("P");
+                db.register(staffUser);
+            }
             
-
+            db.addReview(aId, "postStaff", "This is a helpful and well-researched answer");
+            
             List<Review> reviews = db.getAllReviews(null);
-
             assertTrue(reviews.stream().anyMatch(r -> r.getAnswerId() == aId), "Should find review for answer");
-
         }
     }
    
